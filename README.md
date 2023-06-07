@@ -1,6 +1,5 @@
-# Project Name - Backend API Documentation
+# Project Name - Tusenti API Documentation
 
-## Overview
 
 # Tusenti Backend Engineer Test - API Documentation
 
@@ -103,7 +102,7 @@ Before proceeding, make sure you have the following installed on your machine:
 ### Installation
 
 1. Clone the GitHub repository for the API:
-   git clone https://github.com/your-username/tusenti-backend-api.git
+   git clone https://github.com/your-username/fintech_api.git
 
 2. Navigate to the project directory:
     cd tuSenti
