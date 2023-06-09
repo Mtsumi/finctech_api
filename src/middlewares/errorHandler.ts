@@ -36,3 +36,15 @@ export class BadRequestError extends CustomError {
     return [{ message: this.message }];
   }
 }
+
+export class NotFoundError extends CustomError {
+  statusCode: number = 404;
+
+  constructor(public message: string = 'Not Found') {
+    super(message);
+  }
+
+  serializeErrors() {
+    return [{ message: this.message }];
+  }
+}

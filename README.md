@@ -105,7 +105,7 @@ Before proceeding, make sure you have the following installed on your machine:
    git clone https://github.com/your-username/fintech_api.git
 
 2. Navigate to the project directory:
-    cd tuSenti
+    cd src
 
 3. Install the dependencies using pnpx:
     pnpx install
@@ -115,27 +115,170 @@ Before proceeding, make sure you have the following installed on your machine:
 
 ### Running the application
 
+Run the app with the following command:
+    pnpm compose up
+There are handy scripts available in package.json that you can also use.
+
 
     
 ## API Endpoints
 
-Describe each API endpoint in detail, including its purpose, request structure, response structure, and any additional information or requirements. Use a consistent format for documenting each endpoint, and provide example requests and responses where appropriate.
+## Transcation Routes
+### POST /transactions - Create a new financial transaction
 
-### POST /transactions
+- **Request Body**: Contains the details of the transaction to be created, including `amount` and `type`.
+- **Required Headers**: Authentication token in the `Authorization` header.
+- **Response**: Returns the created transaction object.
 
-Provide a detailed description of the endpoint for creating a new financial transaction. Explain the required request payload, expected response, and any validation or error handling considerations.
+### GET /transactions/:id - Retrieve details of a specific transaction by ID
 
-### GET /transactions/:id
+- **Request Parameters**: `id` - The ID of the transaction to retrieve.
+- **Required Headers**: Authentication token in the `Authorization` header.
+- **Response**: Returns the transaction object with the specified ID.
 
-Explain the purpose of this endpoint, which retrieves the details of a specific transaction by its ID. Document the URL parameter, expected response structure, and any error scenarios that may occur.
+### GET /transactions/user/:userId - Retrieve all transactions associated with a specific user
 
-### GET /transactions/user/:userId
+- **Request Parameters**: `userId` - The ID of the user whose transactions to retrieve.
+- **Required Headers**: Authentication token in the `Authorization` header.
+- **Response**: Returns an array of transaction objects associated with the specified user.
 
-Describe this endpoint, which retrieves all transactions associated with a specific user. Explain the URL parameter, expected response structure, and any relevant considerations.
+### GET /transactions/reports/monthly - Generate a monthly transaction report
 
-### GET /transactions/reports/monthly
+- **Request Query Parameters**: `month` - The month (1-12) for which to generate the report, and `year` - The year for which to generate the report.
+- **Required Headers**: Authentication token in the `Authorization` header.
+- **Response**: Returns the generated report data, including the month, year, total number of transactions, total debit amount, and total credit amount.
 
-Document the purpose of this endpoint, which generates a monthly transaction report. Explain any additional query parameters or filters that can be applied, and describe the expected response structure.
+
+## User Routes
+
+### Sign Up
+
+Creates a new user account.
+
+- **URL:** `/users/signup`
+- **Method:** `POST`
+- **Request Body:**
+
+| Field     | Type   | Description         |
+|-----------|--------|---------------------|
+| email     | string | User's email address |
+| username  | string | User's username     |
+| password  | string | User's password     |
+
+- **Response:**
+  - Success (Status 201)
+    ```json
+    {
+      "success": true,
+      "data": {
+        "id": "123",
+        "email": "example@example.com",
+        "username": "example",
+        "token": "jwt_token"
+      }
+    }
+    ```
+  - Error (Status 400)
+    ```json
+    {
+      "success": false,
+      "message": "Email already in use"
+    }
+    ```
+
+### Sign In
+
+Authenticates a user and returns an access token.
+
+- **URL:** `/users/login`
+- **Method:** `POST`
+- **Request Body:**
+
+| Field     | Type   | Description         |
+|-----------|--------|---------------------|
+| email     | string | User's email address |
+| password  | string | User's password     |
+
+- **Response:**
+  - Success (Status 200)
+    ```json
+    {
+      "success": true,
+      "data": {
+        "id": "123",
+        "email": "example@example.com",
+        "username": "example",
+        "token": "jwt_token"
+      }
+    }
+    ```
+  - Error (Status 400)
+    ```json
+    {
+      "success": false,
+      "message": "Invalid Credentials"
+    }
+    ```
+
+### Get User by ID
+
+Retrieves user details by their ID.
+
+- **URL:** `/users/:id`
+- **Method:** `GET`
+- **Response:**
+  - Success (Status 200)
+    ```json
+    {
+      "success": true,
+      "data": {
+        "id": "123",
+        "email": "example@example.com",
+        "username": "example"
+      }
+    }
+    ```
+  - Error (Status 404)
+    ```json
+    {
+      "success": false,
+      "message": "User not found"
+    }
+    ```
+
+### Get All Users
+
+Retrieves details of all users.
+
+- **URL:** `/users`
+- **Method:** `GET`
+- **Response:**
+  - Success (Status 200)
+    ```json
+    {
+      "success": true,
+      "data": [
+        {
+          "id": "123",
+          "email": "example@example.com",
+          "username": "example"
+        },
+        {
+          "id": "456",
+          "email": "test@test.com",
+          "username": "test"
+        }
+      ]
+    }
+    ```
+  - Error (Status 500)
+    ```json
+    {
+      "success": false,
+      "message": "Internal Server Error"
+    }
+    ```
+
 
 ## Authentication
 

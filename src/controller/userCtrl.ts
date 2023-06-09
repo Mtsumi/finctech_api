@@ -49,7 +49,7 @@ const signUp = async (req: Request, res: Response) => {
         throw new BadRequestError('Email already in use');
       }
   
-      // let's hash password before we save to our db
+      // Hash password before we save to our db
       const hash = await Password.toHash(enteredPassword);
   
       const user = await db.user.create({
@@ -60,7 +60,6 @@ const signUp = async (req: Request, res: Response) => {
         },
       });
   
-      // let's format this to return what we want, you can choose to return what you want
       const { password, createdAt, updatedAt, ...newUser } = user;
   
       const token = generateToken(user);

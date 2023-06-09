@@ -1,8 +1,8 @@
 import express from 'express';
 import morgan from 'morgan';
-import db from './modules/db';
 const dotenv = require("dotenv").config();
 const authRouter = require("./routes/authRoute");
+const transactionRouter = require("./routes/transactionRoute");
 
 
 const app = express();
@@ -13,6 +13,7 @@ app.use(morgan('dev')); // logger
 
 
 app.use('/api/users', authRouter);
+app.use('/api/transactions', transactionRouter);
 
 // Start the server...
 

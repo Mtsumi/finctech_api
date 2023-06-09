@@ -1,5 +1,5 @@
 import { Router } from 'express';
-const { signUp, signIn, getAllUsers, getUserById, createTransaction } = require("../controller/userCtrl");
+const { signUp, signIn, getAllUsers, getUserById } = require("../controller/userCtrl");
 
 
 

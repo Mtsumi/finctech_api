@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { NotAuthorizedError } from './errorHandler';
+import { UnauthorizedError } from './errorHandler';
 import jwt from 'jsonwebtoken';
 
 type UserPayload = {
@@ -15,34 +15,24 @@ declare global {
   }
 }
 
-const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
   let token;
 
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.replace('Bearer ', '');
   }
 
   if (!token) {
-    throw new NotAuthorizedError();
+    throw new UnauthorizedError();
   }
 
   try {
-    // const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-
-    // const user = await prisma.user.findUnique({ where: {id: decoded.id}})
-
     const payload = jwt.verify(token, process.env.JWT_SECRET!) as UserPayload;
 
     req.currentUser = payload;
     next();
   } catch (e) {
-    let message;
-    if (e instanceof Error) message = e.message;
-    else message = String(e);
-    res.status(400).json({ success: false, message });
+    next(e); // Pass the error to the error handling middleware
   }
 };
 
