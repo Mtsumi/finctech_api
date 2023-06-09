@@ -16,6 +16,9 @@ The API exposes the following endpoints:
 3. **GET /transactions/user/:userId** - Retrieves all transactions associated with a specific user.
 4. **GET /transactions/reports/monthly** - Generates a monthly transaction report.
 
+
+*** Note: The user end points not include below were not a requirement for this project however wer necessary for the successful implemenatation of this API ***
+
 ## Requirements
 
 The API implementation adheres to the following requirements:
