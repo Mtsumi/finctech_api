@@ -111,12 +111,14 @@ Before proceeding, make sure you have the following installed on your machine:
     pnpx install
 4. Update node version with Volta using this command:
     volta pin node@18
+5. Create a .env file in the root of the project directory and define the JWT_SECRET environment variable for the authmiddleware.
 
 
 ### Running the application
 
 Run the app with the following command:
     pnpm compose up
+
 There are handy scripts available in package.json that you can also use.
 
 
@@ -282,32 +284,234 @@ Retrieves details of all users.
 
 ## Authentication
 
-Explain the authentication mechanism used by the API. Detail the steps required for authentication, including any required headers, tokens, or credentials. Also, mention any authorization mechanisms if applicable.
+## Authentication
+
+The API uses JSON Web Tokens (JWT) for authentication. To authenticate and access protected routes, follow these steps:
+
+1. **Sign Up**
+
+   To create a new user account, send a `POST` request to the `/users/signup` endpoint with the required parameters in the request body. Provide the user's email, username, and password.
+   Sample request body:
+        {
+            "email": "user@example.com",
+            "username": "username",
+            "password": "password"
+        }
+
+2. **Sign In**
+
+   To authenticate a user and obtain an access token, send a `POST` request to the `/users/login` endpoint with the required parameters in the request body. Provide the user's email and password.
+   Sample body:
+        {
+          "email": "user@example.com",
+          "password": "password"
+        }
+
+
+3. **Protected Routes**
+
+   To access protected routes, include the access token in the request headers. Set the `Authorization` header with the value `Bearer {jwt_token}`. Replace `{jwt_token}` with the actual access token obtained during the authentication process.
+
+4. **Accessing User Data**
+
+   To retrieve user-specific data, such as getting user details or performing user-related operations, send authenticated requests to the corresponding endpoints. Include the access token in the request headers as mentioned above.
+
+5. **Token Expiration**
+
+   Access tokens issued by the API may have an expiration time. When a token expires, the client needs to request a new token by following the sign-in process again.
+
+**Note:** The API expects the access token to be passed in the `Authorization` header for protected routes. Ensure to include the `Bearer` prefix before the token value.
+
+Make sure to handle authentication errors, such as invalid credentials or expired tokens, by checking the response status codes and messages provided by the API.
+
+Take necessary security measures, such as using HTTPS for secure communication, securely storing passwords (e.g., using hashing techniques), and validating user inputs to prevent common vulnerabilities like SQL injection or cross-site scripting (XSS).
+
+Remember to customize the authentication mechanism based on your specific requirements and security practices.
 
 ## Error Handling
 
-Describe the approach to error handling in the API. Document the structure of error responses, including HTTP status codes, error messages, and any additional details provided in the response payload.
+The API follows a consistent error handling approach using custom error classes. These error classes extend the `CustomError` abstract class, which provides a common structure for handling errors.
+
+The following error classes are used in the API:
+
+### UnauthorizedError
+
+This error class represents an unauthorized access attempt. It has a status code of `401`.
+
+```typescript
+class UnauthorizedError extends CustomError {
+  constructor(public message: string = 'Unauthorized Access') {
+    super(message);
+  }
+
+  statusCode: number = 401;
+
+  serializeErrors() {
+    return [{ message: this.message }];
+  }
+}
+```
+
+### RequestValidationError
+
+This error class represents a request validation error. It is used when the request parameters fail validation. It has a status code of 400.
+
+```typescript
+class RequestValidationError extends CustomError {
+  constructor(public errors: ValidationError[]) {
+    super('Invalid Request Parameters');
+  }
+
+  statusCode: number = 400;
+
+  serializeErrors() {
+    return this.errors.map((err) => ({ message: err.msg }));
+  }
+}
+```
+
+
+### BadRequestError
+
+This error class represents a generic bad request error. It is used when the request is malformed or contains invalid data. It has a status code of 400.
+
+```typescript
+
+class BadRequestError extends CustomError {
+  constructor(public message: string) {
+    super(message);
+  }
+
+  statusCode: number = 400;
+
+  serializeErrors() {
+    return [{ message: this.message }];
+  }
+}
+```
+
+### NotFoundError
+
+This error class represents a resource not found error. It is used when a requested resource does not exist. It has a status code of 404.
+
+```typescript
+
+class NotFoundError extends CustomError {
+  constructor(public message: string = 'Not Found') {
+    super(message);
+  }
+
+  statusCode: number = 404;
+
+  serializeErrors() {
+    return [{ message: this.message }];
+  }
+}
+```
+To handle errors, the API follows a consistent structure:
+
+Each error class defines a statusCode property indicating the HTTP status code for the error.
+
+The serializeErrors() method returns an array of error objects with the message field.
+
+When an error occurs, it will be handled by the middleware and returned as a JSON response with the appropriate status code and error message.
+
+
 
 ## Database Schema
 
-Provide an overview of the database schema used by the application. Include a diagram or description of the tables, their relationships, and any important fields or constraints.
+The schema consists of two models: `User` and `Transaction`. Let's take a closer look at each model:
 
-## Testing
+### User
 
-Explain the testing approach for the API. Detail the types of tests performed, such as unit tests, integration tests, or API endpoint tests. Mention any testing frameworks or libraries used and provide instructions on running the tests.
+- `id`: Auto-incrementing integer field serving as the primary key.
+- `username`: Unique string field representing the username of the user.
+- `email`: Unique string field representing the email address of the user.
+- `password`: String field storing the hashed password of the user.
+- `createdAt`: DateTime field indicating the creation timestamp of the user.
+- `updatedAt`: DateTime field indicating the last update timestamp of the user.
+- `transactions`: One-to-many relationship field to the `Transaction` model, representing the transactions associated with the user.
+
+### Transaction
+
+- `id`: Auto-incrementing integer field serving as the primary key.
+- `amount`: Decimal field representing the amount of the transaction.
+- `date`: DateTime field indicating the timestamp of the transaction.
+- `user`: Many-to-one relationship field to the `User` model, representing the user associated with the transaction.
+- `createdAt`: DateTime field indicating the creation timestamp of the transaction.
+- `updatedAt`: DateTime field indicating the last update timestamp of the transaction.
+- `type`: Enum field representing the type of the transaction, which can be either `DEBIT` or `CREDIT`.
+
+The Prisma schema file provides a clear structure for the database tables and their relationships. It serves as a blueprint for generating the necessary database queries and models when using the Prisma client.
+
+
 
 ## Deployment
 
-Provide instructions for deploying the application. Explain the steps for containerizing the application using Docker and any additional deployment considerations.
+The Dockerfile sets up your application by installing dependencies, generating Prisma client, and building the code using SWC. It exposes port 8080 and starts your application using the pnpm start command.
+
+The docker-compose.yml file defines two services: postgres and backend. The postgres service uses the official PostgreSQL image and exposes port 5432 for local connection. The backend service builds the Docker image using the Dockerfile defined earlier, maps ports 5000 and 9229, and sets environment variables for the database URL and port.
+
+To deploy your application using Docker, run the following command:
+
+```shell
+docker-compose up
+```
+This will build the Docker image and start the containers defined in the docker-compose.yml file.
+
+Make sure you have Docker and Docker Compose installed on your system before running the above command.
 
 ## Examples
 
-Include examples of API requests and responses using tools like Postman or cURL. Showcase various scenarios and highlight the expected outcomes.
+### Postman Examples
 
-## Contributing
+*** All The transaction routes need a logged in user, remember to log in, then choose bearer token as the authorisation method and add the token given upon login ***
 
-Specify guidelines and instructions for contributing to the project.
+#### User Sign Up
+Description: This example demonstrates how to sign up a new user.
+
+![User Sign Up Request](https://res.cloudinary.com/dpz3nmgaf/image/upload/v1686303905/Tusenti%20postman/Screenshot_2023-06-09_124444_j3cmrc.png)
+
+#### User Login
+Description: This example demonstrates how to log in an existing user.
+A user has to be logged in to make a transaction
+
+![User Login Request](https://res.cloudinary.com/dpz3nmgaf/image/upload/v1686304242/Tusenti%20postman/Screenshot_2023-06-09_125004_nmzca3.png)
+
+#### Transaction Create
+Description: This example show a created transaction by userId 7
+
+![User Transaction create](https://res.cloudinary.com/dpz3nmgaf/image/upload/v1686304420/Tusenti%20postman/transaction_create_zbby1r.png)
+
+#### Transaction Read by userId 7
+
+Description: This example gets a transaction by userId
+
+![Get by user ID](https://res.cloudinary.com/dpz3nmgaf/image/upload/v1686304638/Tusenti%20postman/trans_read_byId_ymdhzy.png)
+
+#### Transaction Read by transaction Id
+
+Description: This example gets a transaction by it's ID
+
+![Get by user ID](https://res.cloudinary.com/dpz3nmgaf/image/upload/v1686304907/Tusenti%20postman/readBytransId_tawmmi.png)
+
+#### Transaction Monthly Reports
+Description: This example generates a monthly report requested by a user for a specific month
+
+![Monthly Reports](https://res.cloudinary.com/dpz3nmgaf/image/upload/v1686305089/Tusenti%20postman/mothReport_ndg0uv.png)
+## To contribute:
+
++ Fork the repository
++ Create a new branch: git checkout -b new-feature
++ Make your changes and commit them: git commit -am 'Add new feature'
++ Push to the branch: git push origin new-feature
++ Submit a pull request
 
 ## License
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-Specify the license under which the project is released.
+Feel free to reach out if you have any questions or need further assistance!
+
+# Tags
+
+`Docker` `NodeJS` `TypeScript` `REST API` `permissions` `authentication` `authorization` `knex` `prisma` `volta` `rimraf` `pnpm`
